@@ -23,8 +23,8 @@ func (p *Parser) GetProducts(category models.Category) (models.CategoryProducts,
 
 		var page models.Products
 
-		if err := json.Unmarshal(products.BodyBytes, &page); err != nil {
-			slog.Error("Product parsing error", "error", err, "category_id", category.ID, "page", pageNumber, "body_length", len(products.BodyBytes))
+		if err := json.Unmarshal(products, &page); err != nil {
+			slog.Error("Product parsing error", "error", err, "category_id", category.ID, "page", pageNumber, "body_length", len(products))
 			return models.CategoryProducts{}, fmt.Errorf("failed to unmarshal products: %w", err)
 		}
 

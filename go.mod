@@ -3,35 +3,25 @@ module TestCenozavr
 go 1.25.0
 
 require (
-	github.com/Danny-Dasilva/CycleTLS/cycletls v1.0.30
 	github.com/caarlos0/env/v11 v11.3.1
+	github.com/enetx/surf v1.0.199
 	github.com/joho/godotenv v1.5.1
 )
 
 require (
-	github.com/Danny-Dasilva/fhttp v0.0.0-20240217042913-eeeb0b347ce1 // indirect
-	github.com/andybalholm/brotli v1.2.0 // indirect
-	github.com/gaukas/clienthellod v0.4.2 // indirect
-	github.com/gaukas/godicttls v0.0.4 // indirect
-	github.com/go-task/slim-sprig/v3 v3.0.0 // indirect
-	github.com/google/gopacket v1.1.19 // indirect
-	github.com/google/pprof v0.0.0-20250630185457-6e76a2b096b5 // indirect
-	github.com/gorilla/websocket v1.5.1 // indirect
-	github.com/klauspost/compress v1.18.0 // indirect
-	github.com/onsi/ginkgo/v2 v2.23.4 // indirect
-	github.com/quic-go/qpack v0.5.1 // indirect
-	github.com/quic-go/quic-go v0.53.0 // indirect
-	github.com/refraction-networking/uquic v0.0.6 // indirect
-	github.com/refraction-networking/utls v1.8.0 // indirect
-	go.uber.org/automaxprocs v1.6.0 // indirect
-	go.uber.org/mock v0.5.2 // indirect
-	golang.org/x/crypto v0.40.0 // indirect
-	golang.org/x/exp v0.0.0-20250718183923-645b1fa84792 // indirect
-	golang.org/x/mod v0.26.0 // indirect
-	golang.org/x/net v0.42.0 // indirect
-	golang.org/x/sync v0.16.0 // indirect
-	golang.org/x/sys v0.34.0 // indirect
-	golang.org/x/text v0.27.0 // indirect
-	golang.org/x/tools v0.35.0 // indirect
-	h12.io/socks v1.0.3 // indirect
+	github.com/andybalholm/brotli v1.2.1 // indirect
+	github.com/enetx/g v1.0.224 // indirect
+	github.com/enetx/http v1.0.28 // indirect
+	github.com/enetx/http2 v1.0.26 // indirect
+	github.com/enetx/http3 v1.0.7 // indirect
+	github.com/enetx/iter v0.0.0-20250912135656-f1583323588f // indirect
+	github.com/klauspost/compress v1.18.6 // indirect
+	github.com/quic-go/qpack v0.6.0 // indirect
+	github.com/quic-go/quic-go v0.59.0 // indirect
+	github.com/refraction-networking/utls v1.8.3-0.20260301010127-aa6edf4b11af // indirect
+	github.com/wzshiming/socks5 v0.7.0 // indirect
+	golang.org/x/crypto v0.50.0 // indirect
+	golang.org/x/net v0.53.0 // indirect
+	golang.org/x/sys v0.43.0 // indirect
+	golang.org/x/text v0.36.0 // indirect
 )

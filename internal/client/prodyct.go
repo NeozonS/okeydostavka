@@ -4,15 +4,13 @@ import (
 	"fmt"
 	"log/slog"
 	"net/url"
-
-	"github.com/Danny-Dasilva/CycleTLS/cycletls"
 )
 
-func (c *ClientWithCookies) GetProductInfo(catalogID string, pageNumber, pageSize int) (cycletls.Response, error) {
+func (c *ClientWithCookies) GetProductInfo(catalogID string, pageNumber, pageSize int) ([]byte, error) {
 	u, err := url.Parse(baseURL)
 	if err != nil {
 		slog.Error("Failed to parse base URL", "error", err)
-		return cycletls.Response{}, fmt.Errorf("failed to parse base URL: %w", err)
+		return nil, fmt.Errorf("failed to parse base URL: %w", err)
 	}
 
 	u = u.JoinPath("wcs", "resources", "mobihub023", "store", fmt.Sprintf("%d", c.StoreID), "catalog", "combo", catalogID)
@@ -21,35 +19,34 @@ func (c *ClientWithCookies) GetProductInfo(catalogID string, pageNumber, pageSiz
 	q.Set("pageNumber", fmt.Sprintf("%d", pageNumber))
 	u.RawQuery = q.Encode()
 
-	response, err := c.Do(u.String(), cycletls.Options{
-		Ja3:       c.ja3,
-		UserAgent: c.UA,
-		Proxy:     c.Proxy,
+	resp := c.POST(u.String()).
+		SetHeaders("Accept-Language", "ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7").
+		AddHeaders("Accept", "*/*").
+		AddHeaders("Content-Language", "ru-RU").
+		AddHeaders("Content-Type", "application/x-www-form-urlencoded").
+		AddHeaders("Priority", "u=4").
+		AddHeaders("X-Requested-With", "XMLHttpRequest").
+		AddHeaders("Sec-Fetch-Dest", "empty").
+		AddHeaders("Sec-Fetch-Mode", "cors").
+		AddHeaders("Sec-Fetch-Site", "same-origin").
+		Do()
 
-		Headers: map[string]string{
-			"Accept":           "*/*",
-			"Accept-Language":  "ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7",
-			"Content-Language": "ru-RU",
-			"Content-Type":     "application/x-www-form-urlencoded",
-			"Priority":         "u=4",
-			"X-Requested-With": "XMLHttpRequest",
-			"Sec-Fetch-Dest":   "empty",
-			"Sec-Fetch-Mode":   "cors",
-			"Sec-Fetch-Site":   "same-origin",
-		},
-		Timeout:               30,
-		EnableConnectionReuse: true,
-	},
-		"POST",
-	)
-	if err != nil {
-		slog.Error("Price receipt request error", "error", err, "store_id", c.StoreID, "catalog_id", catalogID)
-		return cycletls.Response{}, err
+	if resp.IsErr() {
+		slog.Error("Price receipt request error", "error", resp.Err(), "store_id", c.StoreID, "catalog_id", catalogID)
+		return nil, resp.Err()
 	}
-	if response.Status != 200 {
-		slog.Warn("Error receiving product information", "status", response.Status, "store_id", c.StoreID, "catalog_id", catalogID)
-		return cycletls.Response{}, fmt.Errorf("unexpected status code: %d", response.Status)
+
+	r := resp.Ok()
+	if r.StatusCode != 200 {
+		slog.Warn("Error receiving product information", "status", r.StatusCode, "store_id", c.StoreID, "catalog_id", catalogID)
+		return nil, fmt.Errorf("unexpected status code: %d", r.StatusCode)
 	}
-	slog.Info("Product info received successfully", "store_id", c.StoreID, "catalog_id", catalogID, "status", response.Status)
-	return response, err
+
+	body := r.Body.Bytes()
+	if body.IsErr() {
+		return nil, body.Err()
+	}
+
+	slog.Info("Product info received successfully", "store_id", c.StoreID, "catalog_id", catalogID, "status", r.StatusCode)
+	return body.Ok(), nil
 }

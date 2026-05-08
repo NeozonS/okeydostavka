@@ -15,8 +15,8 @@ func (p *Parser) GetStoreIDByCoords(lon, lat float64) (uint64, error) {
 
 	var store models.AddressResponse
 
-	if err := json.Unmarshal(resp.BodyBytes, &store); err != nil {
-		slog.Error("Coordinate parsing error", "error", err, "latitude", lat, "longitude", lon, "body_length", len(resp.BodyBytes))
+	if err := json.Unmarshal(resp, &store); err != nil {
+		slog.Error("Coordinate parsing error", "error", err, "latitude", lat, "longitude", lon, "body_length", len(resp))
 		return 0, fmt.Errorf("failed to unmarshal store response: %w", err)
 	}
 

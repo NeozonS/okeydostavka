@@ -4,57 +4,46 @@ import (
 	"fmt"
 	"log/slog"
 	"net/url"
-
-	"github.com/Danny-Dasilva/CycleTLS/cycletls"
 )
 
-func (c *ClientWithCookies) GetCategory() (cycletls.Response, error) {
+func (c *ClientWithCookies) GetCategory() ([]byte, error) {
 	u, err := url.Parse(baseURL)
 	if err != nil {
 		slog.Error("Failed to parse base URL", "error", err)
-		return cycletls.Response{}, fmt.Errorf("failed to parse base URL: %w", err)
+		return nil, fmt.Errorf("failed to parse base URL: %w", err)
 	}
 	u = u.JoinPath("wcs", "resources", "mobihub023", "store", fmt.Sprintf("%d", c.StoreID), "catalog", "categories")
 
-	slog.Debug("Requesting category",
-		"url", u.String(),
-		"store_id", c.StoreID,
-	)
+	slog.Debug("Requesting category", "url", u.String(), "store_id", c.StoreID)
 
-	response, err := c.Do(u.String(), cycletls.Options{
-		Ja3:       c.ja3,
-		UserAgent: c.UA,
-		Proxy:     c.Proxy,
+	resp := c.GET(u.String()).
+		SetHeaders("Accept-Language", "ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7").
+		AddHeaders("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8").
+		AddHeaders("Upgrade-Insecure-Requests", "1").
+		AddHeaders("Sec-Fetch-Dest", "document").
+		AddHeaders("Sec-Fetch-Mode", "navigate").
+		AddHeaders("Sec-Fetch-Site", "none").
+		AddHeaders("Priority", "u=0, i").
+		AddHeaders("TE", "trailers").
+		Do()
 
-		Headers: map[string]string{
-			"Accept":                    "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-			"Accept-Language":           "ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7",
-			"Accept-Encoding":           "gzip, deflate, br, zstd",
-			"Upgrade-Insecure-Requests": "1",
-			"Sec-Fetch-Dest":            "document",
-			"Sec-Fetch-Mode":            "navigate",
-			"Sec-Fetch-Site":            "none",
-			"Priority":                  "u=0, i",
-			"TE":                        "trailers",
-			"Connection":                "keep-alive",
-		},
-		Timeout:               30,
-		EnableConnectionReuse: true,
-	}, "GET")
-
-	if err != nil {
-		slog.Error("Error in the catalog request", "error", err, "store_id", c.StoreID)
-		return cycletls.Response{}, err
-	}
-	if response.Status != 200 {
-		slog.Warn("Error receiving the Category",
-			"status", response.Status,
-			"store_id", c.StoreID,
-		)
-		return cycletls.Response{}, fmt.Errorf("unexpected status code: %d", response.Status)
+	if resp.IsErr() {
+		slog.Error("Error in the catalog request", "error", resp.Err(), "store_id", c.StoreID)
+		return nil, resp.Err()
 	}
 
-	slog.Info("Category received successfully", "store_id", c.StoreID, "status", response.Status)
+	r := resp.Ok()
+	if r.StatusCode != 200 {
+		slog.Warn("Error receiving the Category", "status", r.StatusCode, "store_id", c.StoreID)
+		r.Debug().Request().Response(true).Print()
+		return nil, fmt.Errorf("unexpected status code: %d", r.StatusCode)
+	}
 
-	return response, err
+	body := r.Body.Bytes()
+	if body.IsErr() {
+		return nil, body.Err()
+	}
+
+	slog.Info("Category received successfully", "store_id", c.StoreID, "status", r.StatusCode)
+	return body.Ok(), nil
 }

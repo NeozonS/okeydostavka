@@ -16,8 +16,8 @@ func (p *Parser) GetCity() (models.Regions, error) {
 		return models.Regions{}, err
 	}
 
-	if err := json.Unmarshal(resp.BodyBytes, &out); err != nil {
-		slog.Error("City parsing error", "error", err, "body_length", len(resp.BodyBytes))
+	if err := json.Unmarshal(resp, &out); err != nil {
+		slog.Error("City parsing error", "error", err, "body_length", len(resp))
 		return models.Regions{}, fmt.Errorf("failed to unmarshal cities: %w", err)
 	}
 	return out, nil
@@ -42,7 +42,7 @@ func (p *Parser) GetStoreForAllCities() (models.Regions, error) {
 		}
 
 		var store models.Stores
-		if err := json.Unmarshal(respstore.BodyBytes, &store); err != nil {
+		if err := json.Unmarshal(respstore, &store); err != nil {
 			slog.Warn("Error parsing stores for city", "city", city.Regions[i].City, "ffc_id", city.Regions[i].FfcID, "error", err)
 			continue
 		}

@@ -14,8 +14,8 @@ func (p *Parser) GetCatalog() (models.Categories, error) {
 	}
 	var fullCatalog models.Categories
 
-	if err := json.Unmarshal(resp.BodyBytes, &fullCatalog); err != nil {
-		slog.Error("Catalog parsing error", "error", err, "body_length", len(resp.BodyBytes))
+	if err := json.Unmarshal(resp, &fullCatalog); err != nil {
+		slog.Error("Catalog parsing error", "error", err, "body_length", len(resp))
 		return models.Categories{}, err
 	}
 	categories := searchLeafCategories(fullCatalog.Categories)
