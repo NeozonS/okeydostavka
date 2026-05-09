@@ -1,10 +1,14 @@
 package parser
 
 import (
+	"TestCenozavr/internal/client"
 	"TestCenozavr/internal/models"
+	"TestCenozavr/internal/utils"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log/slog"
+	"math/rand"
 	"time"
 )
 
@@ -38,7 +42,7 @@ func (p *Parser) GetProducts(category models.Category) (models.CategoryProducts,
 		}
 		pageNumber++
 
-		time.Sleep(1 * time.Second)
+		utils.Jitter(800*time.Millisecond, 2500*time.Millisecond)
 	}
 
 	fullUrlProduct(allProducts)
@@ -52,6 +56,7 @@ func (p *Parser) GetProducts(category models.Category) (models.CategoryProducts,
 
 func (p *Parser) GetAllProducts() ([]models.CategoryProducts, error) {
 	var allCategoriesProducts []models.CategoryProducts
+	blockCount := 0
 
 	if err := p.client.GetCookie(); err != nil {
 		slog.Error("Failed to get cookies", "error", err)
@@ -67,6 +72,10 @@ func (p *Parser) GetAllProducts() ([]models.CategoryProducts, error) {
 		slog.Warn("Catalog is empty, no categories to process")
 		return allCategoriesProducts, nil
 	}
+
+	rand.Shuffle(len(cat.Categories), func(i, j int) {
+		cat.Categories[i], cat.Categories[j] = cat.Categories[j], cat.Categories[i]
+	})
 
 	ch := make(chan struct{})
 	defer close(ch)
@@ -88,13 +97,25 @@ func (p *Parser) GetAllProducts() ([]models.CategoryProducts, error) {
 	}()
 
 	for _, category := range cat.Categories {
-		time.Sleep(1 * time.Second)
+
+		utils.Jitter(1500*time.Millisecond, 5*time.Second)
 
 		prod, err := p.GetProducts(category)
 		if err != nil {
+			if errors.Is(err, client.AntiBotError) {
+				blockCount++
+				if blockCount >= 3 {
+					return allCategoriesProducts, client.AntiBotError
+				}
+			} else {
+				blockCount = 0
+			}
+
 			slog.Warn("Error in product search, skipping category", "category_id", category.ID, "category_name", category.Name, "error", err)
 			continue
 		}
+
+		blockCount = 0
 
 		if len(prod.Products) > 0 {
 			allCategoriesProducts = append(allCategoriesProducts, prod)

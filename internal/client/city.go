@@ -16,6 +16,7 @@ func (c *ClientWithCookies) GetCity() ([]byte, error) {
 	u = u.JoinPath("wcs", "resources", "mobihub023", "store", fmt.Sprintf("%d", c.StoreID), "regions", "online")
 
 	resp := c.GET(u.String()).
+		AddHeaders("Referer", baseURL+"/").
 		AddHeaders("Accept", "application/json, text/plain, */*").
 		AddHeaders("Content-Type", "application/json").
 		AddHeaders("Origin", baseURL).

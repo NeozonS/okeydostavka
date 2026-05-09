@@ -3,7 +3,7 @@ package main
 import (
 	"TestCenozavr/internal/client"
 	"TestCenozavr/internal/config"
-	"TestCenozavr/internal/fileutils"
+	"TestCenozavr/internal/utils"
 	"TestCenozavr/internal/parser"
 	"log/slog"
 	"os"
@@ -42,9 +42,10 @@ func main() {
 		slog.Error("No products collected, check logs for details")
 		os.Exit(1)
 	}
-	err = fileutils.SaveResult(val, "./output/AllCat.txt")
+	err = utils.SaveResult(val, "AllCat.txt")
 	if err != nil {
 		slog.Error("Failed to save results", "error", err)
 		os.Exit(1)
 	}
 }
+	

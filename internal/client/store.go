@@ -17,6 +17,7 @@ func (c *ClientWithCookies) GetStore(city string) ([]byte, error) {
 	slog.Debug("Requesting store", "url", u.String(), "city", city, "store_id", c.StoreID)
 
 	resp := c.GET(u.String()).
+		AddHeaders("Referer", baseURL+"/").
 		AddHeaders("Accept", "application/json, text/plain, */*").
 		AddHeaders("Content-Type", "application/json").
 		AddHeaders("Origin", baseURL).
@@ -60,6 +61,7 @@ func (c *ClientWithCookies) GetStoreByCoords(longitude, latitude float64) ([]byt
 
 	resp := c.GET(u.String()).
 		SetHeaders("Accept-Language", "ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7").
+		AddHeaders("Referer", baseURL+"/").
 		AddHeaders("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8").
 		AddHeaders("Cache-Control", "max-age=0").
 		AddHeaders("Upgrade-Insecure-Requests", "1").

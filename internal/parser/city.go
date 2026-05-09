@@ -2,6 +2,7 @@ package parser
 
 import (
 	"TestCenozavr/internal/models"
+	"TestCenozavr/internal/utils"
 	"encoding/json"
 	"fmt"
 	"log/slog"
@@ -32,7 +33,7 @@ func (p *Parser) GetStoreForAllCities() (models.Regions, error) {
 
 	for i, _ := range city.Regions {
 
-		time.Sleep(1 * time.Second)
+		utils.Jitter(1*time.Second, 3*time.Second)
 
 		respstore, err := p.client.GetStore(city.Regions[i].FfcID)
 

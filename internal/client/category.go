@@ -18,6 +18,7 @@ func (c *ClientWithCookies) GetCategory() ([]byte, error) {
 
 	resp := c.GET(u.String()).
 		SetHeaders("Accept-Language", "ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7").
+		AddHeaders("Referer", baseURL+"/").
 		AddHeaders("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8").
 		AddHeaders("Upgrade-Insecure-Requests", "1").
 		AddHeaders("Sec-Fetch-Dest", "document").

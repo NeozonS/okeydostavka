@@ -21,6 +21,7 @@ func (c *ClientWithCookies) GetProductInfo(catalogID string, pageNumber, pageSiz
 
 	resp := c.POST(u.String()).
 		SetHeaders("Accept-Language", "ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7").
+		AddHeaders("Referer", baseURL+"/").
 		AddHeaders("Accept", "*/*").
 		AddHeaders("Content-Language", "ru-RU").
 		AddHeaders("Content-Type", "application/x-www-form-urlencoded").
@@ -37,6 +38,9 @@ func (c *ClientWithCookies) GetProductInfo(catalogID string, pageNumber, pageSiz
 	}
 
 	r := resp.Ok()
+	if r.StatusCode == 403 {
+		return nil, AntiBotError
+	}
 	if r.StatusCode != 200 {
 		slog.Warn("Error receiving product information", "status", r.StatusCode, "store_id", c.StoreID, "catalog_id", catalogID)
 		return nil, fmt.Errorf("unexpected status code: %d", r.StatusCode)
