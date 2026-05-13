@@ -6,7 +6,7 @@ import (
 	"net/url"
 )
 
-func (c *ClientWithCookies) GetCategory() ([]byte, error) {
+func (c *Client) GetCategory() ([]byte, error) {
 	u, err := url.Parse(baseURL)
 	if err != nil {
 		slog.Error("Failed to parse base URL", "error", err)

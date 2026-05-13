@@ -31,7 +31,7 @@ func (p *Parser) GetStoreForAllCities() (models.Regions, error) {
 		return models.Regions{}, err
 	}
 
-	for i, _ := range city.Regions {
+	for i := range city.Regions {
 
 		utils.Jitter(1*time.Second, 3*time.Second)
 
@@ -50,4 +50,27 @@ func (p *Parser) GetStoreForAllCities() (models.Regions, error) {
 		city.Regions[i].Stores = store.Stores
 	}
 	return city, nil
+}
+
+func (p *Parser) PrintAllStores() error {
+	fmt.Println("Fetching available stores...")
+	fmt.Println()
+
+	regions, err := p.GetStoreForAllCities()
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("Available stores:")
+	fmt.Println("=================")
+	for _, region := range regions.Regions {
+		if len(region.Stores) == 0 {
+			continue
+		}
+		fmt.Printf("\n%s:\n", region.City)
+		for _, store := range region.Stores {
+			fmt.Printf("  - Store ID: %s\n", store.FfcID)
+		}
+	}
+	return nil
 }

@@ -5,7 +5,7 @@ import (
 	"log/slog"
 )
 
-func (c *ClientWithCookies) GetCookie() error {
+func (c *Client) GetCookie() error {
 	resp := c.GET(baseURL).
 		SetHeaders("Accept-Language", "ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7").
 		AddHeaders("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8").

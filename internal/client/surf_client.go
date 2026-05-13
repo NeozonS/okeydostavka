@@ -11,12 +11,12 @@ import (
 
 const baseURL = "https://www.okeydostavka.ru"
 
-type ClientWithCookies struct {
+type Client struct {
 	client  *surf.Client
 	StoreID uint64
 }
 
-func NewClientWithCookies(cfg *config.Config) *ClientWithCookies {
+func NewClient(cfg *config.Config) *Client {
 	c := surf.NewClient().
 		Builder().
 		Impersonate().Firefox().
@@ -29,26 +29,34 @@ func NewClientWithCookies(cfg *config.Config) *ClientWithCookies {
 		Build().
 		Unwrap()
 
-	return &ClientWithCookies{
+	return &Client{
 		client:  c,
 		StoreID: cfg.StoreID,
 	}
 }
 
-func (c *ClientWithCookies) Close() {
+func NewClientWithCookies(cfg *config.Config) (*Client, error) {
+	client := NewClient(cfg)
+	if err := client.GetCookie(); err != nil {
+		return nil, err
+	}
+	return client, nil
+}
+
+func (c *Client) Close() {
 	c.client.Close()
 	slog.Info("Client closed")
 }
 
-func (c *ClientWithCookies) SetStoreID(storeID uint64) {
+func (c *Client) SetStoreID(storeID uint64) {
 	c.StoreID = storeID
 	slog.Debug("Store ID updated", "new", storeID)
 }
 
-func (c *ClientWithCookies) GET(url string) *surf.Request {
+func (c *Client) GET(url string) *surf.Request {
 	return c.client.Get(g.String(url))
 }
 
-func (c *ClientWithCookies) POST(url string) *surf.Request {
+func (c *Client) POST(url string) *surf.Request {
 	return c.client.Post(g.String(url))
 }

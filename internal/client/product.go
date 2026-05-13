@@ -6,7 +6,7 @@ import (
 	"net/url"
 )
 
-func (c *ClientWithCookies) GetProductInfo(catalogID string, pageNumber, pageSize int) ([]byte, error) {
+func (c *Client) GetProductInfo(catalogID string, pageNumber, pageSize int) ([]byte, error) {
 	u, err := url.Parse(baseURL)
 	if err != nil {
 		slog.Error("Failed to parse base URL", "error", err)

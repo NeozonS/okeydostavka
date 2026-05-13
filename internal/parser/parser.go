@@ -3,16 +3,19 @@ package parser
 import (
 	"TestCenozavr/internal/client"
 	"TestCenozavr/internal/config"
+	"context"
 )
 
 type Parser struct {
-	client *client.ClientWithCookies
+	client *client.Client
 	config *config.Config
+	ctx    context.Context
 }
 
-func NewParser(client *client.ClientWithCookies, config *config.Config) *Parser {
+func NewParser(ctx context.Context, client *client.Client, config *config.Config) *Parser {
 	return &Parser{
 		client: client,
 		config: config,
+		ctx:    ctx,
 	}
 }

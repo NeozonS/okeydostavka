@@ -19,6 +19,12 @@ func (p *Parser) GetProducts(category models.Category) (models.CategoryProducts,
 	totalCount := 1
 
 	for {
+		select {
+		case <-p.ctx.Done():
+			return models.CategoryProducts{}, p.ctx.Err()
+		default:
+		}
+
 		products, err := p.client.GetProductInfo(category.ID, pageNumber, pageSize)
 		if err != nil {
 			slog.Error("Error receiving products", "error", err, "category_id", category.ID, "page", pageNumber)
@@ -58,10 +64,6 @@ func (p *Parser) GetAllProducts() ([]models.CategoryProducts, error) {
 	var allCategoriesProducts []models.CategoryProducts
 	blockCount := 0
 
-	if err := p.client.GetCookie(); err != nil {
-		slog.Error("Failed to get cookies", "error", err)
-	}
-
 	cat, err := p.GetCatalog()
 	if err != nil {
 		slog.Error("Failed to get catalog", "error", err)
@@ -73,12 +75,12 @@ func (p *Parser) GetAllProducts() ([]models.CategoryProducts, error) {
 		return allCategoriesProducts, nil
 	}
 
+	slog.Info("Found categories to process", "count", len(cat.Categories))
+
 	rand.Shuffle(len(cat.Categories), func(i, j int) {
 		cat.Categories[i], cat.Categories[j] = cat.Categories[j], cat.Categories[i]
 	})
 
-	ch := make(chan struct{})
-	defer close(ch)
 	ticker := time.NewTicker(2 * time.Minute)
 	defer ticker.Stop()
 
@@ -89,14 +91,19 @@ func (p *Parser) GetAllProducts() ([]models.CategoryProducts, error) {
 				if err := p.client.GetCookie(); err != nil {
 					slog.Error("Failed to get cookies", "error", err)
 				}
-
-			case <-ch:
+			case <-p.ctx.Done():
 				return
 			}
 		}
 	}()
 
-	for _, category := range cat.Categories {
+	for i, category := range cat.Categories {
+		select {
+		case <-p.ctx.Done():
+			slog.Info("Parsing stopped", "processed_categories", len(allCategoriesProducts), "total_products", countProducts(allCategoriesProducts))
+			return allCategoriesProducts, p.ctx.Err()
+		default:
+		}
 
 		utils.Jitter(1500*time.Millisecond, 5*time.Second)
 
@@ -105,7 +112,8 @@ func (p *Parser) GetAllProducts() ([]models.CategoryProducts, error) {
 			if errors.Is(err, client.AntiBotError) {
 				blockCount++
 				if blockCount >= 3 {
-					return allCategoriesProducts, client.AntiBotError
+					slog.Warn("Blocked by anti-bot 3 times", "processed_categories", len(allCategoriesProducts), "total_products", countProducts(allCategoriesProducts))
+					return allCategoriesProducts, fmt.Errorf("blocked 3 times: %w", client.AntiBotError)
 				}
 			} else {
 				blockCount = 0
@@ -119,10 +127,20 @@ func (p *Parser) GetAllProducts() ([]models.CategoryProducts, error) {
 
 		if len(prod.Products) > 0 {
 			allCategoriesProducts = append(allCategoriesProducts, prod)
+			slog.Debug("Category processed", "current", i+1, "total", len(cat.Categories), "category_name", category.Name, "products", len(prod.Products))
 		}
 	}
 
+	slog.Info("Parsing completed", "processed_categories", len(allCategoriesProducts), "total_products", countProducts(allCategoriesProducts))
 	return allCategoriesProducts, nil
+}
+
+func countProducts(categories []models.CategoryProducts) int {
+	total := 0
+	for _, c := range categories {
+		total += len(c.Products)
+	}
+	return total
 }
 
 func fullUrlProduct(prod []models.Product) {

@@ -6,7 +6,7 @@ import (
 	"net/url"
 )
 
-func (c *ClientWithCookies) GetCity() ([]byte, error) {
+func (c *Client) GetCity() ([]byte, error) {
 	u, err := url.Parse(baseURL)
 	if err != nil {
 		slog.Error("Failed to parse base URL", "error", err)

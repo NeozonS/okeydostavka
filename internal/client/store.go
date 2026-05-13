@@ -6,7 +6,7 @@ import (
 	"net/url"
 )
 
-func (c *ClientWithCookies) GetStore(city string) ([]byte, error) {
+func (c *Client) GetStore(city string) ([]byte, error) {
 	u, err := url.Parse(baseURL)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse base URL: %w", err)
@@ -44,7 +44,7 @@ func (c *ClientWithCookies) GetStore(city string) ([]byte, error) {
 	return body.Ok(), nil
 }
 
-func (c *ClientWithCookies) GetStoreByCoords(longitude, latitude float64) ([]byte, error) {
+func (c *Client) GetStoreByCoords(longitude, latitude float64) ([]byte, error) {
 	u, err := url.Parse(baseURL)
 	if err != nil {
 		slog.Error("Failed to parse base URL", "error", err)
